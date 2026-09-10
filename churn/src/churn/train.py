@@ -3,7 +3,7 @@ import pickle
 from sklearn.model_selection import train_test_split
 
 from churn.config import MODEL_PATH
-from churn.data import load_data, clean_data
+from churn.data import load_data
 from churn.features import prepare_features
 from churn.model import train_model
 from churn.evaluate import evaluate_model
@@ -14,9 +14,6 @@ def main():
     # Carrega os dados
     df = load_data()
 
-    # Limpeza
-    df = clean_data(df)
-
     # Features
     X, y = prepare_features(df)
 
@@ -24,7 +21,9 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=0.25
+        test_size=0.25,
+        random_state=42,
+        stratify=y,
     )
 
     # Treinamento
@@ -41,10 +40,12 @@ def main():
     )
 
     # Salva o modelo
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+
     with open(MODEL_PATH, "wb") as file:
         pickle.dump(model, file)
 
-    print("salvo!")
+    print(f"modelo salvo em: {MODEL_PATH}")
 
 
 if __name__ == "__main__":
