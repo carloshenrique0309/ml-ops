@@ -1,0 +1,9 @@
+services:
+  treino:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./mlruns:/app/mlruns
+      - ./mlartifacts:/app/mlartifacts
+    command: uv run python -m churn.train

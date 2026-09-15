@@ -1,11 +1,13 @@
 import pandas as pd
 
 from churn.config import DATASET_PATH
+from churn.schema import CleanChurnSchema, ChurnSchema
 
 
-def load_data():
+def load_data(path=DATASET_PATH):
 
-    df = pd.read_csv(DATASET_PATH)
+    df = pd.read_csv(path)
+    df = ChurnSchema.validate(df, lazy=True)
 
     print(df.shape)
     print(df.head())
@@ -36,5 +38,6 @@ def clean_data(df):
 
     # limpa o resto dos nulos
     df = df.dropna()
+    df = CleanChurnSchema.validate(df, lazy=True)
 
     return df

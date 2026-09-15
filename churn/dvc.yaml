@@ -1,0 +1,8 @@
+stages:
+  treino:
+    cmd: uv run python -m churn.train
+    deps:
+      - data/churn.csv
+      - src/churn
+    outs:
+      - models/churn_model.pkl
