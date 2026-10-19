@@ -15,6 +15,10 @@ dependencies = [
     "seaborn>=0.13.2",
 ]
 
+[project.scripts]
+churn-train = "churn.train:main"
+churn-promote = "churn.promote:promote_best_model"
+
 [build-system]
 requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
