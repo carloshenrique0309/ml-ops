@@ -2,6 +2,7 @@ import pickle
 
 import mlflow
 import mlflow.sklearn
+from mlflow.models import infer_signature
 from sklearn.model_selection import train_test_split
 
 from churn.config import DATASET_PATH, MODEL_PATH
@@ -64,9 +65,12 @@ def main():
             y_test
         )
         mlflow.log_metrics(metrics)
+        signature = infer_signature(X_train, model.predict(X_train))
         mlflow.sklearn.log_model(
             model,
-            name="model",
+            name="churn-model",
+            signature=signature,
+            input_example=X_train.head(5),
             serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,
         )
 

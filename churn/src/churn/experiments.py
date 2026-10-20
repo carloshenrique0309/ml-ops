@@ -1,4 +1,6 @@
 import mlflow
+import mlflow.sklearn
+from mlflow.models import infer_signature
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -53,6 +55,13 @@ def run_grid() -> None:
                 model.fit(x_train, y_train)
                 metrics = evaluate_model(model, x_test, y_test)
                 mlflow.log_metrics(metrics)
+                mlflow.sklearn.log_model(
+                    model,
+                    name="churn-model",
+                    signature=infer_signature(x_train, model.predict(x_train)),
+                    input_example=x_train.head(5),
+                    serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,
+                )
 
 
 if __name__ == "__main__":

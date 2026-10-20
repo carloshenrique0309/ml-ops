@@ -15,6 +15,10 @@ dependencies = [
     "seaborn>=0.13.2",
 ]
 
+[project.scripts]
+churn-train = "churn.train:main"
+churn-promote = "churn.promote:promote_best_model"
+
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
