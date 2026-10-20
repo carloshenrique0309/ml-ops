@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Testes / ferramentas
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Configuração local
+.env
+.env.local
+
+# Artefatos locais do MLflow / DVC
+mlruns/
+mlartifacts/
+mlflow.db
+.dvc/tmp/
+.dvc/cache/
