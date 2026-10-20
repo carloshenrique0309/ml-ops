@@ -101,18 +101,15 @@ def test_health_degraded_without_model() -> None:
     assert response.json()["status"] == "degraded"
 
 
-def test_model_info_exposes_best_model_metadata() -> None:
+def test_model_info_exposes_only_metrics_and_params() -> None:
     with make_client() as client:
         response = client.get("/model/info")
 
     assert response.status_code == 200
     body = response.json()
-    assert body["name"] == "churn"
-    assert body["version"] == "3"
-    assert body["alias"] == "champion"
+    assert set(body) == {"metrics", "params"}
     assert body["metrics"]["roc_auc"] == pytest.approx(0.9123)
-    assert body["flavors"] == ["python_function", "sklearn"]
-    assert body["selection"]["strategy"] == "registry/alias"
+    assert body["params"] == {"n_estimators": "300"}
 
 
 def test_model_info_returns_503_without_model() -> None:

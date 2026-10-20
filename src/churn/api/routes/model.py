@@ -22,10 +22,10 @@ ModelServiceDep = Annotated[ModelService, Depends(get_model_service)]
 @router.get(
     "/info",
     response_model=ModelInfoResponse,
-    summary="Informações do melhor modelo em serving",
+    summary="Métricas e parâmetros do melhor modelo",
 )
 def model_info(service: ModelServiceDep) -> ModelInfoResponse:
-    """Retorna metadados do modelo carregado (versão, run, métricas, params e assinatura)."""
+    """Retorna apenas as métricas e os hiperparâmetros do modelo em serving."""
     try:
         return ModelInfoResponse.from_snapshot(service.info())
     except ModelNotAvailableError as exc:

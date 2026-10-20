@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,64 +22,19 @@ class ModelReference(ApiModel):
     uri: str = Field(description="URI MLflow de onde o modelo foi carregado.")
 
 
-class SelectionInfo(ApiModel):
-    strategy: str = Field(description="Como o modelo foi escolhido (registry/alias, experiment/best-run, ...).")
-    metric: str | None = Field(default=None, description="Métrica usada na seleção.")
-    mode: Literal["max", "min"] | None = Field(default=None, description="Critério da métrica.")
-    value: float | None = Field(default=None, description="Valor da métrica no modelo escolhido.")
-
-
 class ModelInfoResponse(ApiModel):
-    name: str | None = None
-    version: str | None = None
-    alias: str | None = None
-    stage: str | None = None
-    run_id: str | None = None
-    status: str | None = None
-    description: str | None = None
-    model_uri: str = Field(description="URI completo do modelo.")
-    loaded_at: datetime = Field(description="Quando o modelo foi carregado em memória (UTC).")
-    flavors: list[str] = Field(default_factory=list, description="Flavors MLflow disponíveis.")
-    metrics: dict[str, float] = Field(default_factory=dict)
-    params: dict[str, str] = Field(default_factory=dict)
-    tags: dict[str, str] = Field(default_factory=dict)
-    signature: dict[str, Any] | None = Field(
-        default=None, description="Assinatura de entrada/saída do modelo, quando disponível."
+    """Informações do melhor modelo: apenas métricas e hiperparâmetros."""
+
+    metrics: dict[str, float] = Field(
+        default_factory=dict, description="Métricas registradas no run do modelo."
     )
-    input_columns: list[str] = Field(
-        default_factory=list, description="Colunas de entrada esperadas pelo modelo."
+    params: dict[str, str] = Field(
+        default_factory=dict, description="Parâmetros registrados no run do modelo."
     )
-    selection: SelectionInfo | None = None
 
     @classmethod
     def from_snapshot(cls, snapshot: ModelSnapshot) -> ModelInfoResponse:
-        selection = None
-        if snapshot.strategy:
-            selection = SelectionInfo(
-                strategy=snapshot.strategy,
-                metric=snapshot.selection_metric,
-                mode=snapshot.selection_mode,  # type: ignore[arg-type]
-                value=snapshot.selection_value,
-            )
-
-        return cls(
-            name=snapshot.name,
-            version=snapshot.version,
-            alias=snapshot.alias,
-            stage=snapshot.stage,
-            run_id=snapshot.run_id,
-            status=snapshot.status,
-            description=snapshot.description,
-            model_uri=snapshot.model_uri,
-            loaded_at=snapshot.loaded_at,
-            flavors=sorted(snapshot.flavors),
-            metrics=snapshot.metrics,
-            params=snapshot.params,
-            tags=snapshot.tags,
-            signature=snapshot.signature,
-            input_columns=snapshot.input_columns,
-            selection=selection,
-        )
+        return cls(metrics=snapshot.metrics, params=snapshot.params)
 
 
 class HealthResponse(ApiModel):

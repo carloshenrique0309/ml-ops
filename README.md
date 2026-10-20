@@ -87,7 +87,7 @@ Se nada for encontrado, a API sobe em estado **degraded** (`/health` retorna
 | Método | Rota             | Descrição                                                        |
 | ------ | ---------------- | ---------------------------------------------------------------- |
 | GET    | `/health`        | Estado da API e se o modelo está carregado                       |
-| GET    | `/model/info`    | Versão, alias, run, métricas, params, tags, assinatura e flavors |
+| GET    | `/model/info`    | Apenas métricas e hiperparâmetros do modelo em serving           |
 | POST   | `/model/reload`  | Recarrega o melhor modelo sem reiniciar a API                    |
 | POST   | `/predict`       | Predição de um registro                                          |
 | POST   | `/predict/batch` | Predição de até 1000 registros                                   |
@@ -96,6 +96,13 @@ Se nada for encontrado, a API sobe em estado **degraded** (`/health` retorna
 
 ```bash
 curl http://localhost:8000/model/info
+```
+
+```json
+{
+  "metrics": {"roc_auc": 0.9264},
+  "params": {"modelo": "logistic_regression"}
+}
 ```
 
 ```bash
