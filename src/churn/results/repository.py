@@ -290,6 +290,29 @@ class ResultsRepository:
             return None
         return _json_safe(matches.iloc[0].to_dict())
 
+    def search_customers(self, term: str, *, limit: int = 20) -> list[dict[str, Any]]:
+        """Busca clientes por trecho do código, no formato usado pela tela inicial."""
+        term = (term or "").strip()
+        if not term:
+            return []
+
+        frame = self._require_frame()
+        if self._id_column is None:
+            raise ResultsSchemaError(
+                "Nenhuma coluna de identificação disponível para a busca."
+            )
+
+        values = frame[self._id_column].astype("string")
+        mask = values.str.contains(term, case=False, na=False, regex=False)
+        filtered = frame.loc[mask]
+        if self._probability_column:
+            filtered = filtered.sort_values(
+                self._probability_column, ascending=False, na_position="last"
+            )
+
+        page = filtered.head(limit)
+        return [_customer_payload(record) for record in page.to_dict(orient="records")]
+
     # ---- Auxiliares -----------------------------------------------------
     def _probability_series(self) -> pd.Series:
         frame = self._require_frame()
@@ -373,6 +396,53 @@ def _with_sslmode(database_url: str, sslmode: str | None) -> str:
     query = dict(parse_qsl(parts.query))
     query.setdefault("sslmode", sslmode)
     return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+def _customer_payload(record: dict[str, Any]) -> dict[str, Any]:
+    """Converte uma linha da fonte para o contrato usado pela tela de busca."""
+    lowered = {str(key).strip().lower(): value for key, value in record.items()}
+
+    customer_id = _first_value(lowered, ("customerid", "customer_id", "client_id", "clientid", "id"))
+    tenure = _as_number(_first_value(lowered, ("tenure", "tempo_como_cliente")))
+    contract = _first_value(lowered, ("contract", "contrato"))
+    monthly = _as_number(
+        _first_value(lowered, ("monthlycharges", "monthly_charges", "cobranca_mensal"))
+    )
+    churn_raw = _first_value(
+        lowered, ("churn", "churn_prediction", "predicted_churn", "prediction")
+    )
+    probability = _as_number(
+        _first_value(lowered, ("probability", "churn_probability", "churn_proba", "proba", "score"))
+    )
+    if probability is not None and probability <= 1.0:
+        probability *= 100.0
+
+    churn = _to_bool(churn_raw)
+    return {
+        "customerID": None if customer_id is None else str(customer_id),
+        "tenure": 0 if tenure is None else int(tenure),
+        "contract": "" if contract is None else str(contract),
+        "monthlyCharges": 0.0 if monthly is None else float(monthly),
+        "churn": bool(churn) if churn is not None else None,
+        "probability": 0.0 if probability is None else float(probability),
+    }
+
+
+def _first_value(values: dict[str, Any], keys: tuple[str, ...]) -> Any:
+    for key in keys:
+        if key in values:
+            return values[key]
+    return None
+
+
+def _as_number(value: Any) -> float | None:
+    if value is None or value is pd.NA or value is pd.NaT:
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return None if math.isnan(number) else number
 
 
 def _to_bool(value: Any) -> bool | None:

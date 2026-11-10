@@ -28,4 +28,5 @@ ENV RESULTS_SOURCE=postgres \
 
 EXPOSE 8000
 
-CMD ["uvicorn", "churn.results.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Railway define PORT (8080 por padrão); localmente usa 8000.
+CMD ["sh", "-c", "uvicorn churn.results.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
