@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import math
 import threading
+from contextlib import closing
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -335,7 +336,7 @@ def _read_postgres_frame(
     query = sql.SQL("SELECT * FROM {}").format(identifier)
 
     try:
-        with psycopg2.connect(dsn, connect_timeout=10) as connection:
+        with closing(psycopg2.connect(dsn, connect_timeout=10)) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(query)
                 columns = [description[0] for description in cursor.description or []]

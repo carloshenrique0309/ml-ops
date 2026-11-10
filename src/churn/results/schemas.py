@@ -21,9 +21,9 @@ class ResultsSummary(BaseModel):
     probability_column: str | None = None
     prediction_column: str | None = None
     columns: list[str] = Field(default_factory=list)
-    source: str = Field(description="Arquivo de origem dos resultados.")
+    source: str = Field(description="Fonte de origem dos resultados.")
     updated_at: datetime | None = Field(
-        default=None, description="Última modificação do arquivo (UTC)."
+        default=None, description="Momento da última carga dos resultados (UTC)."
     )
 
 
