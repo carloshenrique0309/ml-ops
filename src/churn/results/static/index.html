@@ -1,328 +1,85 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<title>Resultados de Churn</title>
-<style>
-  :root {
-    --bg: #f4f6fb;
-    --card: #ffffff;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --border: #e5e7eb;
-    --primary: #2563eb;
-    --danger: #dc2626;
-    --danger-bg: #fee2e2;
-    --ok: #047857;
-    --ok-bg: #d1fae5;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 15px;
-  }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 20px 48px; }
-  header { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; }
-  h1 { margin: 0; font-size: 26px; }
-  .muted { color: var(--muted); font-size: 13px; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0; }
-  .card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 16px; box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
-  }
-  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-  .card .value { font-size: 26px; font-weight: 600; margin-top: 6px; }
-  .toolbar {
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px;
-  }
-  .toolbar input[type="search"] { flex: 1 1 260px; }
-  input, select, button {
-    font: inherit; color: inherit; background: #fff;
-    border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;
-  }
-  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-  button { cursor: pointer; }
-  button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-  button:disabled { opacity: .5; cursor: default; }
-  .table-wrap {
-    margin-top: 16px; background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; overflow: auto; box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
-  }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: #fafafa; position: sticky; top: 0; }
-  tbody tr:hover { background: #f9fafb; }
-  tbody tr:last-child td { border-bottom: none; }
-  .prob { display: flex; align-items: center; gap: 8px; min-width: 130px; }
-  .prob .track { width: 70px; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
-  .prob .fill { height: 100%; border-radius: 999px; background: var(--primary); }
-  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-  .badge.churn { background: var(--danger-bg); color: var(--danger); }
-  .badge.ok { background: var(--ok-bg); color: var(--ok); }
-  .pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
-  .empty { padding: 32px; text-align: center; color: var(--muted); }
-  .error {
-    margin-top: 14px; padding: 12px 14px; border-radius: 10px;
-    background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca;
-  }
-  [hidden] { display: none !important; }
-</style>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#101c36">
+  <title>Clientes e risco de churn | Retenção</title>
+  <style>
+    :root{--navy:#101c36;--muted:#68758c;--line:#e3e8ef;--blue:#315bea;--surface:#fff}
+    *{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:var(--navy);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    header{background:var(--navy);color:#fff;padding:20px max(24px,calc((100% - 1040px)/2));display:flex;align-items:center;gap:13px}
+    .mark{display:grid;place-items:center;width:38px;height:38px;border:1px solid #ffffff35;border-radius:12px;color:#a9beff;font-weight:800}header strong{display:block;font-size:14px;letter-spacing:.02em}header span{display:block;color:#aeb9ce;font-size:12px}
+    main{max-width:1040px;padding:43px 24px 70px;margin:auto}.eyebrow{color:var(--blue);text-transform:uppercase;font-size:11px;font-weight:800;letter-spacing:.14em}
+    h1{font-size:clamp(28px,4vw,36px);letter-spacing:-.04em;line-height:1.15;margin:8px 0}.intro p{color:var(--muted);margin:0;max-width:690px}.intro{margin-bottom:27px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:15px;box-shadow:0 4px 16px #16274408}.search-card{padding:23px;margin-bottom:25px}
+    .search-card h2{font-size:14px;margin:0 0 12px}.search-row{display:flex;gap:10px}.search-wrap{position:relative;flex:1}.search-icon{position:absolute;left:14px;top:10px;color:#78869c;font-size:18px}
+    input{width:100%;height:46px;border:1px solid #dce2eb;border-radius:9px;padding:0 14px 0 42px;color:var(--navy);font:inherit;font-size:14px;outline:none}input:focus{border-color:#7d98f5;box-shadow:0 0 0 3px #315bea16}
+    button{height:46px;padding:0 22px;border:0;border-radius:9px;background:var(--blue);color:#fff;font:inherit;font-weight:750;cursor:pointer}button:hover{background:#244bd0}.hint{color:var(--muted);font-size:11px;margin:10px 0 0}
+    .section-head{display:flex;justify-content:space-between;align-items:end;margin:25px 0 12px}.section-head h2{font-size:17px;margin:0}.section-head p{font-size:11px;color:var(--muted);margin:0}
+    .table-wrap{overflow:auto}.customer-table{width:100%;border-collapse:collapse;min-width:630px}.customer-table th{color:#718099;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:750;padding:12px 16px;border-bottom:1px solid var(--line)}
+    .customer-table td{padding:14px 16px;border-bottom:1px solid #edf0f4;font-size:13px}.customer-table tr:last-child td{border:0}.customer-table tr:hover td{background:#fafbfe}
+    .id{font-weight:750;color:#1e2e4c}.sub{display:block;color:var(--muted);font-size:10px;font-weight:450}.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:30px;font-size:10px;font-weight:800;white-space:nowrap}.badge.yes{background:#fff0eb;color:#a53d29}.badge.no{background:#eaf7ef;color:#167447}.dot{width:6px;height:6px;background:currentColor;border-radius:50%}
+    .prob{min-width:110px}.prob strong{font-size:15px}.bar{height:5px;background:#edf0f5;border-radius:9px;overflow:hidden;margin-top:5px}.bar span{display:block;height:100%;background:#e27b57;border-radius:9px}
+    .notice{border-radius:9px;padding:13px;background:#fff5e9;border:1px solid #f4dfbf;color:#805114;font-size:12px;margin:15px 0}.empty{text-align:center;padding:38px 20px;color:var(--muted);font-size:13px}
+    .footnote{color:#8490a3;text-align:center;font-size:11px;margin-top:24px}.footnote strong{color:#64718a}
+    .customer-link{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}.customer-link:hover .id{color:var(--blue)}
+    .suggestions{position:absolute;z-index:5;top:calc(100% + 5px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 25px #16274418;overflow:hidden}.suggestions[hidden]{display:none}.suggestion{display:block;width:100%;height:auto;padding:11px 14px;background:#fff;color:var(--navy);text-align:left;border-radius:0;border-bottom:1px solid #edf0f4}.suggestion:last-child{border-bottom:0}.suggestion:hover{background:#f5f7fd}.suggestion small{display:none}.live-results{display:none}.live-results.active{display:block}.live-results .section-head{margin-top:25px}
+    .search-card{position:relative}.suggestions{position:static;margin-top:9px;box-shadow:none;border:0;border-radius:0;max-height:280px;overflow-y:auto}.suggestion{border:1px solid var(--line);border-radius:8px;margin-top:5px;padding:10px 13px;font-size:14px;font-weight:700}.suggestion small{display:none!important}.examples-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.example-item{display:block;width:100%;height:auto;padding:12px 14px;background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:9px;text-align:left;font-size:14px;font-weight:750}.example-item:hover{background:#f5f7fd;border-color:#a9baf8;color:var(--blue)}.detail-card{padding:24px}.detail-card h2{font-size:17px;margin:0 0 17px}.detail-id{font-size:23px;font-weight:800;letter-spacing:-.03em;margin-bottom:14px}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:19px 0}.detail-label{display:block;color:var(--muted);font-size:11px}.detail-value{font-size:14px;font-weight:700}.detail-risk{padding:14px 16px;background:#f7f8fb;border-radius:10px}.detail-prob{font-size:26px;font-weight:800;margin-top:5px}
+    @media(max-width:560px){main{padding:30px 14px 50px}.search-card{padding:18px}.search-row{flex-direction:column}button{width:100%}.section-head{align-items:start;gap:6px;flex-direction:column}.customer-table td,.customer-table th{padding:12px 10px}header{padding:16px}}
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>Resultados de Churn</h1>
-      <div class="muted">Consulta do batch scoring — sem inferência.</div>
-    </div>
-    <div class="muted" id="source">carregando…</div>
-  </header>
-
-  <div class="error" id="error" hidden></div>
-
-  <section class="cards" aria-label="Resumo">
-    <div class="card"><div class="label">Clientes</div><div class="value" id="kpi-total">—</div></div>
-    <div class="card"><div class="label">Em risco</div><div class="value" id="kpi-churn">—</div></div>
-    <div class="card"><div class="label">Sem risco</div><div class="value" id="kpi-ok">—</div></div>
-    <div class="card"><div class="label">Taxa de churn</div><div class="value" id="kpi-rate">—</div></div>
-    <div class="card"><div class="label">Prob. média</div><div class="value" id="kpi-prob">—</div></div>
-  </section>
-
-  <section class="toolbar" aria-label="Filtros">
-    <input id="q" type="search" placeholder="Buscar por cliente, contrato, etc." aria-label="Buscar">
-    <select id="prediction" aria-label="Filtrar por risco">
-      <option value="">Todos</option>
-      <option value="churn">Em risco</option>
-      <option value="no_churn">Sem risco</option>
-    </select>
-    <select id="limit" aria-label="Registros por página">
-      <option value="10">10 por página</option>
-      <option value="25" selected>25 por página</option>
-      <option value="50">50 por página</option>
-      <option value="100">100 por página</option>
-    </select>
-    <button id="reload" class="primary" title="Reler o arquivo de resultados">Atualizar</button>
-  </section>
-
-  <div class="table-wrap">
-    <table id="table">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
-    <p class="empty" id="empty" hidden>Nenhum resultado encontrado.</p>
-  </div>
-
-  <div class="pager">
-    <button id="prev">Anterior</button>
-    <span class="muted" id="page">—</span>
-    <button id="next">Próxima</button>
-  </div>
-</div>
-
-<script>
-const state = { offset: 0, limit: 25, q: "", prediction: "", summary: null };
-
-const el = (id) => document.getElementById(id);
-const truthy = new Set(["1", "true", "yes", "y", "sim", "churn", "churned", "em risco"]);
-
-async function fetchJSON(url, options) {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new Error(body.detail || response.statusText);
-  }
-  return response.json();
-}
-
-function showError(message) {
-  const box = el("error");
-  box.textContent = message;
-  box.hidden = !message;
-}
-
-function percent(value) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return "—";
-  return `${(Number(value) * 100).toFixed(1)}%`;
-}
-
-function label(column) {
-  if (!state.summary) return column;
-  if (column === state.summary.id_column) return "Cliente";
-  if (column === state.summary.probability_column) return "Probabilidade";
-  if (column === state.summary.prediction_column) return "Predição";
-  return column.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
-}
-
-function orderedColumns(keys) {
-  const first = [state.summary?.id_column, state.summary?.probability_column, state.summary?.prediction_column];
-  const head = first.filter((column) => column && keys.includes(column));
-  return [...head, ...keys.filter((key) => !head.includes(key))];
-}
-
-function renderCell(td, column, value) {
-  if (value === null || value === undefined || value === "") {
-    td.textContent = "—";
-    td.className = "muted";
-    return;
-  }
-
-  if (state.summary && column === state.summary.probability_column) {
-    const pct = Math.max(0, Math.min(1, Number(value)));
-    td.innerHTML = "";
-    const wrap = document.createElement("div");
-    wrap.className = "prob";
-    const track = document.createElement("span");
-    track.className = "track";
-    const fill = document.createElement("span");
-    fill.className = "fill";
-    fill.style.width = `${(pct * 100).toFixed(0)}%`;
-    track.appendChild(fill);
-    const text = document.createElement("span");
-    text.textContent = percent(pct);
-    wrap.append(track, text);
-    td.appendChild(wrap);
-    return;
-  }
-
-  if (state.summary && column === state.summary.prediction_column) {
-    const isChurn = truthy.has(String(value).toLowerCase());
-    const badge = document.createElement("span");
-    badge.className = `badge ${isChurn ? "churn" : "ok"}`;
-    badge.textContent = isChurn ? "Churn" : "Não churn";
-    td.appendChild(badge);
-    return;
-  }
-
-  td.textContent = String(value);
-}
-
-function renderTable(items) {
-  const table = el("table");
-  const thead = table.tHead;
-  const tbody = table.tBodies[0];
-  thead.innerHTML = "";
-  tbody.innerHTML = "";
-
-  el("empty").hidden = items.length > 0;
-  if (!items.length) return;
-
-  const columns = orderedColumns(Object.keys(items[0]));
-  const headerRow = document.createElement("tr");
-  for (const column of columns) {
-    const th = document.createElement("th");
-    th.textContent = label(column);
-    headerRow.appendChild(th);
-  }
-  thead.appendChild(headerRow);
-
-  for (const item of items) {
-    const row = document.createElement("tr");
-    for (const column of columns) {
-      const td = document.createElement("td");
-      renderCell(td, column, item[column]);
-      row.appendChild(td);
+  <header><div class="mark">C</div><div><strong>RETENÇÃO · INTELIGÊNCIA DE CLIENTES</strong><span>Consulta individual de churn</span></div></header>
+  <main>
+    <section class="intro"><div class="eyebrow">Base de clientes</div><h1>Pesquise um cliente</h1><p>Digite o código do cliente para consultar o risco previsto de cancelamento. A porcentagem mostra a estimativa do modelo para cada cliente.</p></section>
+    <section class="card search-card"><h2>Buscar pelo código do cliente</h2><div class="search-row"><div class="search-wrap"><span class="search-icon">⌕</span><input id="customer-search" type="search" value="" placeholder="Ex.: 7000-QFVW" aria-label="Código do cliente" autocomplete="off"><div id="suggestions" class="suggestions" hidden></div></div><button id="search-button" type="button">Pesquisar&nbsp; →</button></div><p class="hint">Digite para ver correspondências ou clique em um dos cinco exemplos abaixo.</p></section>
+    
+    <section id="examples-section" ><div class="section-head"><h2>Cinco clientes para demonstração</h2><p>Clique no número para ver o resultado</p></div>
+    <div class="examples-list"><button class="example-item" type="button" data-customer="10217-XQHK">10217-XQHK</button><button class="example-item" type="button" data-customer="10401-ZPZB">10401-ZPZB</button><button class="example-item" type="button" data-customer="12901-JHVS">12901-JHVS</button><button class="example-item" type="button" data-customer="10122-FEWU">10122-FEWU</button><button class="example-item" type="button" data-customer="8319-HINI">8319-HINI</button></div>
+    </section>
+    <section id="live-results" class="live-results"><div class="section-head"><h2>Resultado da consulta</h2><p id="results-count"></p></div><section id="results-table" class="card detail-card" hidden></section><section id="results-empty" class="card empty" hidden></section></section>
+    <p class="footnote">A previsão é uma estimativa baseada no perfil cadastrado. <strong>Churn real</strong> indica o dado histórico; a porcentagem é a previsão do modelo.</p>
+  </main>
+  <script>
+    const searchInput = document.getElementById('customer-search');
+    const suggestions = document.getElementById('suggestions');
+    const examplesSection = document.getElementById('examples-section');
+    const liveResults = document.getElementById('live-results');
+    const resultsTable = document.getElementById('results-table');
+    const resultsEmpty = document.getElementById('results-empty');
+    let timer;
+    let lastResults = [];
+    let requestCounter = 0;
+    const escapeHtml = value => String(value).replace(/[&<>\"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[char]));
+    function showDetail(customer) {
+      resultsEmpty.hidden = true; resultsTable.hidden = false;
+      resultsTable.innerHTML = `<div class="detail-id">Cliente ${escapeHtml(customer.customerID)}</div><div class="badge ${customer.churn?'yes':'no'}"><span class="dot"></span>${customer.churn?'Dá churn':'Não dá churn'}</div><div class="detail-grid"><div><span class="detail-label">Tempo como cliente</span><span class="detail-value">${customer.tenure} meses</span></div><div><span class="detail-label">Contrato</span><span class="detail-value">${escapeHtml(customer.contract)}</span></div><div><span class="detail-label">Cobrança mensal</span><span class="detail-value">R$ ${customer.monthlyCharges.toFixed(2)}</span></div><div class="detail-risk"><span class="detail-label">Probabilidade estimada de churn</span><div class="detail-prob">${customer.probability.toFixed(1)}%</div><div class="bar"><span style="width:${customer.probability}%"></span></div></div></div>`;
+      document.getElementById('results-count').textContent = 'Previsão do modelo';
+      liveResults.classList.add('active'); examplesSection.style.display='none';
     }
-    tbody.appendChild(row);
-  }
-}
-
-async function loadSummary() {
-  const data = await fetchJSON("/api/summary");
-  state.summary = data;
-
-  el("kpi-total").textContent = data.total.toLocaleString("pt-BR");
-  el("kpi-churn").textContent = data.churn === null ? "—" : data.churn.toLocaleString("pt-BR");
-  el("kpi-ok").textContent = data.not_churn === null ? "—" : data.not_churn.toLocaleString("pt-BR");
-  el("kpi-rate").textContent = percent(data.churn_rate);
-  el("kpi-prob").textContent = percent(data.average_probability);
-
-  const updated = data.updated_at ? new Date(data.updated_at).toLocaleString("pt-BR") : "—";
-  el("source").textContent = `${data.source} · atualizado em ${updated}`;
-}
-
-async function loadResults() {
-  const params = new URLSearchParams({ limit: state.limit, offset: state.offset });
-  if (state.q) params.set("q", state.q);
-  if (state.prediction) params.set("prediction", state.prediction);
-
-  const data = await fetchJSON(`/api/results?${params}`);
-  renderTable(data.items);
-
-  const pages = Math.max(1, Math.ceil(data.total / state.limit));
-  const current = Math.floor(state.offset / state.limit) + 1;
-  el("page").textContent = `Página ${current} de ${pages} · ${data.total.toLocaleString("pt-BR")} registros`;
-  el("prev").disabled = state.offset === 0;
-  el("next").disabled = state.offset + state.limit >= data.total;
-}
-
-async function refresh() {
-  try {
-    await loadSummary();
-    await loadResults();
-    showError("");
-  } catch (error) {
-    showError(error.message);
-  }
-}
-
-let debounce;
-el("q").addEventListener("input", (event) => {
-  clearTimeout(debounce);
-  debounce = setTimeout(() => {
-    state.q = event.target.value.trim();
-    state.offset = 0;
-    refresh();
-  }, 300);
-});
-
-el("prediction").addEventListener("change", (event) => {
-  state.prediction = event.target.value;
-  state.offset = 0;
-  refresh();
-});
-
-el("limit").addEventListener("change", (event) => {
-  state.limit = Number(event.target.value);
-  state.offset = 0;
-  refresh();
-});
-
-el("prev").addEventListener("click", () => {
-  state.offset = Math.max(0, state.offset - state.limit);
-  loadResults().catch((error) => showError(error.message));
-});
-
-el("next").addEventListener("click", () => {
-  state.offset += state.limit;
-  loadResults().catch((error) => showError(error.message));
-});
-
-el("reload").addEventListener("click", async () => {
-  const button = el("reload");
-  button.disabled = true;
-  button.textContent = "Atualizando…";
-  try {
-    await fetchJSON("/api/reload", { method: "POST" });
-    await refresh();
-    button.textContent = "Atualizado!";
-  } catch (error) {
-    showError(error.message);
-    button.textContent = "Atualizar";
-  } finally {
-    setTimeout(() => {
-      button.textContent = "Atualizar";
-      button.disabled = false;
-    }, 1200);
-  }
-});
-
-refresh();
-</script>
+    async function searchCustomers(term) {
+      const currentRequest = ++requestCounter;
+      if (!term.trim()) { suggestions.hidden = true; liveResults.classList.remove('active'); resultsEmpty.hidden=true; resultsTable.hidden=true; examplesSection.style.display = ''; history.replaceState(null,'','/'); return; }
+      const response = await fetch(`/api/clientes?q=${encodeURIComponent(term)}`);
+      const data = await response.json(); if(currentRequest!==requestCounter)return; lastResults = data.results;
+      suggestions.innerHTML = lastResults.slice(0,6).map(c=>`<button class="suggestion" type="button" data-customer="${escapeHtml(c.customerID)}">${escapeHtml(c.customerID)}</button>`).join('');
+      suggestions.hidden = !lastResults.length;
+      examplesSection.style.display = 'none'; liveResults.classList.add('active'); resultsTable.hidden=true;
+      document.getElementById('results-count').textContent = '';
+      resultsEmpty.hidden=lastResults.length>0; resultsEmpty.textContent=lastResults.length?'':'Nenhum cliente encontrado. Tente outro código.';
+      history.replaceState(null,'',`/?q=${encodeURIComponent(term)}`);
+    }
+    function showCustomer(customerId) {
+      const customer = lastResults.find(c=>c.customerID===customerId);
+      if (!customer) return;
+      searchInput.value = customerId; suggestions.hidden = true;
+      showDetail(customer);
+      history.replaceState(null,'',`/?q=${encodeURIComponent(customerId)}`);
+    }
+    searchInput.addEventListener('input',()=>{ clearTimeout(timer); timer=setTimeout(()=>searchCustomers(searchInput.value),180); });
+    document.getElementById('search-button').addEventListener('click',()=>searchCustomers(searchInput.value));
+    document.addEventListener('click',event=>{const button=event.target.closest('[data-customer]'); if(button){const id=button.dataset.customer; if(!lastResults.some(c=>c.customerID===id)){fetch(`/api/clientes?q=${encodeURIComponent(id)}`).then(r=>r.json()).then(data=>{lastResults=data.results;showCustomer(id);});}else showCustomer(id);}else if(!event.target.closest('.search-wrap')) suggestions.hidden=true;});
+    searchInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchCustomers(searchInput.value);}});
+    if(searchInput.value.trim()) searchCustomers(searchInput.value);
+  </script>
 </body>
 </html>

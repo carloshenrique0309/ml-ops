@@ -20,6 +20,12 @@ C004,48,29.95,One year,0.12,0,2026-11-02T03:15:00Z
 C005,66,41.50,Two year,0.08,0,2026-11-02T03:15:00Z
 """
 
+TELCO_CSV = """customerID,tenure,contract,monthlyCharges,churn,probability
+10217-XQHK,24,Month-to-month,101.87,True,100.0
+10211-UVHP,36,One year,28.22,False,1.0
+7000-QFVW,63,Month-to-month,64.85,False,13.0
+"""
+
 
 def make_client(tmp_path, content: str = CSV, **overrides) -> TestClient:
     path = tmp_path / "results.csv"
@@ -131,8 +137,35 @@ def test_index_serves_the_frontend(tmp_path) -> None:
         response = client.get("/")
 
     assert response.status_code == 200
-    assert "Resultados de Churn" in response.text
-    assert "/api/results" in response.text
+    assert "Pesquise um cliente" in response.text
+    assert "/api/clientes" in response.text
+
+
+def test_customer_search_returns_ui_payload(tmp_path) -> None:
+    with make_client(tmp_path, content=TELCO_CSV) as client:
+        found = client.get("/api/clientes", params={"q": "102"}).json()
+        single = client.get("/api/clientes", params={"q": "7000"}).json()
+        empty = client.get("/api/clientes", params={"q": "   "}).json()
+
+    assert [item["customerID"] for item in found["results"]] == ["10217-XQHK", "10211-UVHP"]
+    assert found["results"][0]["tenure"] == 24
+    assert found["results"][0]["contract"] == "Month-to-month"
+    assert found["results"][0]["monthlyCharges"] == pytest.approx(101.87)
+    assert found["results"][0]["churn"] is True
+    assert found["results"][0]["probability"] == pytest.approx(100.0)
+    assert single["results"][0]["probability"] == pytest.approx(13.0)
+    assert single["results"][0]["churn"] is False
+    assert empty == {"results": []}
+
+
+def test_customer_search_maps_snake_case_columns(tmp_path) -> None:
+    with make_client(tmp_path) as client:
+        body = client.get("/api/clientes", params={"q": "C00"}).json()
+
+    assert len(body["results"]) == 5
+    assert body["results"][0]["customerID"] == "C001"
+    assert body["results"][0]["churn"] is True
+    assert body["results"][0]["probability"] == pytest.approx(93.0)
 
 
 def postgres_settings(**overrides) -> ResultsSettings:

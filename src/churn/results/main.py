@@ -109,6 +109,18 @@ def list_results(
     return ResultsPage(total=total, limit=page_size, offset=offset, items=items)
 
 
+@router.get("/api/clientes", tags=["resultados"])
+def search_customers(
+    repository: RepoDep,
+    q: Annotated[str, Query(description="Código do cliente ou trecho do código.")] = "",
+) -> dict[str, Any]:
+    """Busca usada pela tela inicial (sugestões e detalhe do cliente)."""
+    try:
+        return {"results": repository.search_customers(q)}
+    except ResultsError as exc:
+        raise _http_error(exc) from exc
+
+
 @router.get("/api/results/{customer_id}", tags=["resultados"])
 def get_result(customer_id: str, repository: RepoDep) -> dict[str, Any]:
     try:
@@ -144,7 +156,7 @@ def create_app(
         description=(
             "Consulta dos resultados de churn já calculados. Sem inferência: "
             "lê uma tabela PostgreSQL (ou CSV/Parquet) e expõe a consulta em "
-            "JSON e em uma página web."
+            "JSON e na tela de busca de clientes."
         ),
         lifespan=lifespan,
     )
