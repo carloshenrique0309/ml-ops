@@ -1,0 +1,31 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONPATH=/app/src
+
+WORKDIR /app
+
+# Só o necessário para consultar o PostgreSQL e servir a página (sem MLflow/sklearn).
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir \
+        "fastapi>=0.141" \
+        "uvicorn[standard]>=0.53" \
+        "pandas>=3.0" \
+        "pydantic-settings>=2.15" \
+        "psycopg2-binary>=2.9.9"
+
+COPY src ./src
+
+# Mantido apenas como fallback local (RESULTS_SOURCE=csv). Em produção a fonte é o Postgres.
+COPY data ./data
+
+ENV RESULTS_SOURCE=postgres \
+    DB_SCHEMA=public \
+    DB_TABLE=churn_results \
+    RESULTS_PATH=/app/data/sample_predictions.csv
+
+EXPOSE 8000
+
+CMD ["uvicorn", "churn.results.main:app", "--host", "0.0.0.0", "--port", "8000"]

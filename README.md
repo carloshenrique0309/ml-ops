@@ -1,7 +1,8 @@
 # churn — MLOps
 
-Projeto de predição de churn com pipeline de MLOps (DVC + MLflow) e uma API FastAPI
-para servir o **melhor modelo** registrado.
+Projeto de predição de churn com pipeline de MLOps (DVC + MLflow), uma API FastAPI
+para servir o **melhor modelo** registrado e um viewer dos resultados já calculados
+(sem inferência, front + back na mesma imagem).
 
 ## Estrutura
 
@@ -18,7 +19,17 @@ src/churn/
         ├── health.py          # GET /health
         ├── model.py           # GET /model/info, POST /model/reload
         └── predict.py         # POST /predict, POST /predict/batch
-tests/test_api.py              # testes das rotas (sem depender do MLflow)
+
+src/churn/results/             # viewer de resultados (sem modelo)
+├── main.py                    # API + frontend na mesma aplicação
+├── repository.py              # leitura e consulta (PostgreSQL ou CSV/Parquet)
+├── load_postgres.py           # importação CSV/Parquet -> PostgreSQL
+├── config.py
+├── schemas.py
+└── static/index.html          # frontend (HTML/CSS/JS, sem build)
+
+tests/test_api.py              # testes da API de inferência
+tests/test_results_api.py      # testes do viewer de resultados
 ```
 
 ## Requisitos
@@ -172,6 +183,124 @@ docker run --rm -p 8000:8000 `
   -e MLFLOW_MODEL_NAME=churn `
   churn-api
 ```
+
+## Viewer de resultados (sem inferência)
+
+`churn-results` serve **somente consulta** aos resultados já calculados pelo batch
+scoring. Não importa MLflow e não carrega modelo: lê uma tabela **PostgreSQL**
+(padrão) ou um CSV/Parquet (modo local) e entrega a mesma aplicação como API JSON
+e página web (uma única imagem Docker, front + back).
+
+```powershell
+# Rodando local com CSV (sem banco)
+$env:RESULTS_SOURCE = "csv"
+$env:RESULTS_PATH = "data/sample_predictions.csv"
+churn-results
+
+# Rodando contra o PostgreSQL
+$env:RESULTS_SOURCE = "postgres"
+$env:DATABASE_URL = "postgresql://usuario:senha@host:5432/banco"
+$env:DB_TABLE = "churn_results"
+churn-load-results data/sample_predictions.csv   # importa o CSV para a tabela
+churn-results
+```
+
+- Página: <http://localhost:8000>
+- Docs: <http://localhost:8000/docs>
+
+### Variáveis de ambiente
+
+| Variável        | Padrão                          | Descrição                                                        |
+| --------------- | ------------------------------- | ---------------------------------------------------------------- |
+| `RESULTS_SOURCE`| `postgres`                      | `postgres` (produção) ou `csv` (local/testes)                    |
+| `DATABASE_URL`  | —                               | URL do PostgreSQL (`postgresql://...`)                           |
+| `DB_SCHEMA`     | `public`                        | Schema da tabela                                                 |
+| `DB_TABLE`      | `churn_results`                 | Tabela com os resultados                                         |
+| `DB_SSLMODE`    | —                               | Opcional (`require`, `prefer`, `disable`...)                     |
+| `RESULTS_PATH`  | `data/sample_predictions.csv`   | Arquivo usado quando `RESULTS_SOURCE=csv`                        |
+| `CHURN_THRESHOLD` | `0.5`                         | Limiar quando só há probabilidade                                |
+| `PAGE_SIZE`     | `25`                            | Tamanho padrão da página                                         |
+| `ID_COLUMN`     | detectado                       | Sobrescreve a coluna de identificação                            |
+| `PROBABILITY_COLUMN` | detectado                  | Sobrescreve a coluna de probabilidade                            |
+| `PREDICTION_COLUMN`  | detectado                  | Sobrescreve a coluna de predição                                 |
+
+### Colunas esperadas
+
+A tabela/arquivo precisa de uma coluna de identificação; probabilidade e predição
+são opcionais e detectadas automaticamente:
+
+| Papel         | Nomes aceitos                                                        |
+| ------------- | -------------------------------------------------------------------- |
+| id            | `customer_id`, `customerid`, `client_id`, `clientid`, `id`           |
+| probabilidade | `churn_probability`, `churn_proba`, `probability`, `proba`, `score`  |
+| predição      | `churn_prediction`, `predicted_churn`, `prediction`, `churn`         |
+
+Use `ID_COLUMN`, `PROBABILITY_COLUMN` e `PREDICTION_COLUMN` para sobrescrever.
+
+### Endpoints
+
+| Método | Rota                        | Descrição                                                          |
+| ------ | --------------------------- | ------------------------------------------------------------------ |
+| GET    | `/`                         | Página com resumo, busca e tabela                                  |
+| GET    | `/health`                   | Fonte carregada e nº de linhas                                     |
+| GET    | `/api/summary`              | Totais, taxa de churn e probabilidade média                        |
+| GET    | `/api/results`              | Consulta paginada (`q`, `prediction`, `min_probability`, `limit`, `offset`) |
+| GET    | `/api/results/{customer_id}`| Um cliente                                                         |
+| POST   | `/api/reload`               | Relê a tabela/arquivo após o batch scoring                         |
+
+### Importar CSV para o PostgreSQL
+
+```powershell
+# Com DATABASE_URL definida no ambiente:
+churn-load-results data/sample_predictions.csv
+
+# Ou passando a URL explicitamente:
+churn-load-results data/sample_predictions.csv `
+  --database-url "postgresql://usuario:senha@host:5432/banco" `
+  --table churn_results
+```
+
+O script **substitui** a tabela por padrão (`--if-exists replace`); use
+`--if-exists append` para adicionar linhas.
+
+### Docker (front + back na mesma imagem)
+
+```powershell
+docker build -f Dockerfile.results -t churn-results .
+
+# PostgreSQL
+docker run --rm -p 8000:8000 `
+  -e RESULTS_SOURCE=postgres `
+  -e DATABASE_URL="postgresql://usuario:senha@host:5432/banco" `
+  -e DB_TABLE=churn_results `
+  churn-results
+
+# CSV local (fallback)
+docker run --rm -p 8000:8000 `
+  -e RESULTS_SOURCE=csv `
+  -e RESULTS_PATH=/dados/predictions.parquet `
+  -v "${PWD}\data:/dados:ro" `
+  churn-results
+```
+
+### Deploy no Railway
+
+1. No projeto do Railway, clique em **Add** → **Database** → **PostgreSQL**.
+2. No serviço da aplicação, abra **Variables** e adicione:
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (referência ao serviço criado)
+   - `RESULTS_SOURCE` = `postgres`
+   - `DB_SCHEMA` = `public`
+   - `DB_TABLE` = `churn_results`
+3. Faça o deploy. O `/health` fica `degraded` até a tabela existir.
+4. Importe os resultados usando a **URL pública** do PostgreSQL (aba
+   **Connect** do serviço de banco), do seu computador:
+
+   ```powershell
+   churn-load-results data/sample_predictions.csv `
+     --database-url "postgresql://postgres:senha@containers-....railway.app:..../railway"
+   ```
+
+5. Chame `POST /api/reload` (ou reinicie o serviço) para carregar a tabela.
 
 ## Próximos passos
 
